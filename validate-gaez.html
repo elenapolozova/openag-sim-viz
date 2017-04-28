@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<script src="https://d3js.org/d3.v4.js"></script> 
+	<script src="https://d3js.org/topojson.v1.js"></script> 
+	<style>
+		body {
+		  background: #fcfcfa;
+		}
+		#countries {
+		  fill: #FFF;
+		  stroke: #444;
+		}
+	</style>
+	<script>
+"use strict";
+document.addEventListener("DOMContentLoaded", function(event) { 
+  	console.log("javascript!")
+	var width = 960,
+	    height = 500;
+
+	var projection = d3.geoEquirectangular()
+		.scale(height / Math.PI)
+		.translate([width / 2, height / 2]);
+	console.log(projection([0, 0]))
+
+	var path = d3.geoPath()
+	    .projection(projection);
+
+	var svg = d3.select("body").append("svg")
+	    .attr("width", width)
+	    .attr("height", height);
+	//var colorscale = d3.scaleSequential(d3.interpolateRainbow);
+	var colorscale = d3.scaleSequential(d3.interpolateCubehelix('#762a83', '#fdae61')); 
+	var voronoi = d3.voronoi()
+		.extent([[-180, -90], [180, 90]])
+		.x((d) => d[1])
+		.y((d) => d[0])
+	d3.json("world.json", function(error, world) {
+		console.log("yo")
+	  	svg.append('defs')
+	  	  .append('mask')
+	  	  	.attr('id', 'cmask')
+	  	  .append("path")
+	      	.attr("id", "countries")
+	      	.datum(topojson.feature(world, world.objects.countries))
+	      	.attr("d", path);
+
+	    d3.json("actualyield_gaez_cotton_2000_provinces.json", (error, points) => {
+	    	var cursor = null;
+
+	    	var updateCursor = function(poly) {
+	    		console.log("Updating to", poly.data)
+	    		cursor.attr('transform', "translate(" + projection([poly.data[1], poly.data[0]]).join(' ') + ')')
+	    	}
+	    	points.sort((a, b) => a[2] > b[2] ? 1 : -1);
+			var diagram = voronoi(points);
+			var polys = diagram.polygons();
+			//console.log(polys);
+		    svg.selectAll("polygon")
+		    	.data(polys)
+		    	.enter()
+		    		.append("polygon")
+		    		.attr('mask', 'url(#cmask)')
+		    		.attr('points', (d) => d ? d.map((di) => projection(di).join(',')).join(' ') : null)
+		    		.attr('fill', (d) => d ? colorscale(Math.min(d.data[2], 1.4)) : null) // this
+		    		.on('click', updateCursor)
+
+	    	cursor = svg.append('g');
+		    cursor.append('circle')
+	    		.attr('cx', 0)
+	    		.attr('cy', 0)
+	    		.attr('fill', 'green')
+	    		.attr('r', '3')
+	    });
+
+	    svg.append("text")
+        	.attr("x", (width / 2))             
+        	.attr("y", 20)
+        	.attr("text-anchor", "middle")  
+        	.style("font-size", "16px")  
+        	.text("GAEZ Cotton Actual Yield 2000 (by province)");
+	  
+	});
+	console.log("done!")
+});
+
+	</script>
+
+
+
+	<title>Simulation Output</title>
+</head>
+
+<body>
+
+</body>
