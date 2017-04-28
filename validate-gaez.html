@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		    		.append("polygon")
 		    		.attr('mask', 'url(#cmask)')
 		    		.attr('points', (d) => d ? d.map((di) => projection(di).join(',')).join(' ') : null)
-		    		.attr('fill', (d) => d ? colorscale(Math.min(d.data[2], 1.4)) : null) // this
+		    		.attr('fill', (d) => d ? colorscale(Math.min(d.data[2], 3)) : null) // this
 		    		.on('click', updateCursor)
 
 	    	cursor = svg.append('g');
